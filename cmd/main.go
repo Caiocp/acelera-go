@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"sync"
 
 	"github.com/caiocp/go-intensivo/internal/order/infra/database"
@@ -27,6 +28,18 @@ func main() {
 	repository := database.NewOrderRepository(db)
 
 	createOrderUseCase := usecases.NewCalculateFinalPriceUseCase(repository)
+
+	http.HandleFunc("/total", func(w http.ResponseWriter, r *http.Request) {
+		getTotalUseCase := usecases.NewGetTotalUseCase(repository)
+		total, err := getTotalUseCase.Execute()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		json.NewEncoder(w).Encode(total)
+	})
+	go http.ListenAndServe(":8080", nil)
 
 	ch, err := rabbitmq.OpenChannel()
 	if err != nil {
