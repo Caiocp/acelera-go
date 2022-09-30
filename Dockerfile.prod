@@ -1,0 +1,7 @@
+FROM golang:19.1 AS builder
+
+WORKDIR /home/go/app
+
+COPY . .
+
+RUN GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -o app -ldflags="-w -s" cmd/exemplo/main.go
